@@ -1,6 +1,8 @@
 package com.reactnativecomponent.amap;
 
+import com.amap.api.maps2d.model.BitmapDescriptorFactory;
 import com.amap.api.maps2d.model.LatLng;
+import com.amap.api.maps2d.model.MarkerOptions;
 import com.amap.api.services.core.LatLonPoint;
 import com.amap.api.services.core.PoiItem;
 import com.amap.api.services.poisearch.PoiResult;
@@ -9,10 +11,12 @@ import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
+
 import java.util.List;
 
 
@@ -143,5 +147,23 @@ public class RCTAMapModule extends ReactContextBaseJavaModule implements PoiSear
     @Override
     public void onPoiItemSearched(PoiItem poiItem, int i) {
 
+    }
+
+    @ReactMethod
+    public void addMarker(final int reactTag, final ReadableMap markerConf) {
+        mContext.getCurrentActivity().runOnUiThread(new Runnable() {
+            public void run() {
+                final RCTAMapView mapView = ((RCTAMapView) mContext.getCurrentActivity().findViewById(reactTag));
+
+                MarkerOptions markerOption = new MarkerOptions();
+                markerOption.position(new LatLng(markerConf.getDouble("latitude"), markerConf.getDouble("longitude")));
+                markerOption.title(markerConf.getString("title")).snippet(markerConf.getString("subtitle"));
+                markerOption.draggable(false);//设置Marker可拖动
+                markerOption.icon(BitmapDescriptorFactory
+                        .defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
+
+                mapView.addMarkerWithOption(markerOption);
+            }
+        });
     }
 }

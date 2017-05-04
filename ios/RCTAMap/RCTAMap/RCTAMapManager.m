@@ -91,29 +91,30 @@ RCT_CUSTOM_VIEW_PROPERTY(options, NSDictionary, RCTAMap) {
         [view setCenterCoordinate:CLLocationCoordinate2DMake(latitude, longitude) animated:YES];
         //    [view setZoomLevel:15 animated:true];
         
-        if(!view.hasUserLocationPointAnnotaiton) {
-//            NSLog(@"draw userLocation annoation...");
-            
-            view.hasUserLocationPointAnnotaiton = YES;
-            MAPointAnnotation *pointAnnotaiton = [[MAPointAnnotation alloc] init];
-            [pointAnnotaiton setCoordinate:view.centerCoordinate];
-            pointAnnotaiton.lockedToScreen = YES;
-            CGPoint screenPoint = [view convertCoordinate:view.centerCoordinate toPointToView:view];
-            
-            if([keys containsObject:@"centerMarker"]) {
-                view.centerMarker = [options objectForKey:@"centerMarker"];
-                
-                UIImage *image = [UIImage imageNamed:view.centerMarker];
-                
-                //NSLog(@"screenPoint.x = %f, screenPoint.y = %f", screenPoint.x, screenPoint.y);
-                
-                pointAnnotaiton.lockedScreenPoint = CGPointMake(screenPoint.x, screenPoint.y - image.size.height / 2);
-                
-                //screenPoint.x = 183.129769, screenPoint.y = 126.198228
-                
-                [view addAnnotation:pointAnnotaiton];
-            }
-        }
+        view.hasUserLocationPointAnnotaiton = YES;
+//        if(!view.hasUserLocationPointAnnotaiton) {
+//            //NSLog(@"draw userLocation annoation...");
+//
+//            view.hasUserLocationPointAnnotaiton = YES;
+//            MAPointAnnotation *pointAnnotaiton = [[MAPointAnnotation alloc] init];
+//            [pointAnnotaiton setCoordinate:view.centerCoordinate];
+//            pointAnnotaiton.lockedToScreen = YES;
+//            CGPoint screenPoint = [view convertCoordinate:view.centerCoordinate toPointToView:view];
+//            
+//            if([keys containsObject:@"centerMarker"]) {
+//                view.centerMarker = [options objectForKey:@"centerMarker"];
+//            
+//                UIImage *image = [UIImage imageNamed:view.centerMarker];
+//                
+//                //NSLog(@"screenPoint.x = %f, screenPoint.y = %f", screenPoint.x, screenPoint.y);
+//                
+//                pointAnnotaiton.lockedScreenPoint = CGPointMake(screenPoint.x, screenPoint.y - image.size.height / 2);
+//                
+//                //screenPoint.x = 183.129769, screenPoint.y = 126.198228
+//                
+//                [view addAnnotation:pointAnnotaiton];
+//            }
+//        }
     }
 }
 
@@ -419,10 +420,11 @@ RCT_EXPORT_METHOD(searchPoiByCenterCoordinate:(NSDictionary *)params)
             annotationView = [[MAPinAnnotationView alloc] initWithAnnotation:annotation reuseIdentifier:pointReuseIndetifier];
         }
         
-        annotationView.canShowCallout   = NO;
+        annotationView.canShowCallout   = YES;
         annotationView.animatesDrop     = NO;
         annotationView.draggable        = NO;
-        annotationView.image            = [UIImage imageNamed:mapView.centerMarker];
+        //annotationView.image            = [UIImage imageNamed:mapView.centerMarker];
+        annotationView.pinColor         = MAPinAnnotationColorPurple;
         
         return annotationView;
     }
@@ -653,5 +655,40 @@ RCT_EXPORT_METHOD(searchPoiByCenterCoordinate:(NSDictionary *)params)
                                                  body:result];
 }
 
+//绘制点标记
+RCT_EXPORT_METHOD(addAnnotation:(nonnull NSNumber *)reactTag annotation:(nonnull NSDictionary*)annotation){
+    dispatch_async(self.bridge.uiManager.methodQueue,^{
+        [self.bridge.uiManager addUIBlock:^(__unused RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
+            id view = viewRegistry[reactTag];
+            RCTAMap *mapView = (RCTAMap *)view;
+            
+            MAPointAnnotation *pointAnnotation = [[MAPointAnnotation alloc] init];
+            pointAnnotation.coordinate = CLLocationCoordinate2DMake([[annotation objectForKey:@"latitude"] floatValue], [[annotation objectForKey:@"longitude"] floatValue]);
+            pointAnnotation.title = [annotation objectForKey:@"title"];
+            pointAnnotation.subtitle = [annotation objectForKey:@"subtitle"];
+            
+            [mapView addAnnotation:pointAnnotation];
+        }];
+    });
+}
+
+//RCT_EXPORT_METHOD(addAnnotations:(nonnull NSNumber *)reactTag annotations:(nonnull NSDictionary *)annotations){
+//    dispatch_async(self.bridge.uiManager.methodQueue,^{
+//        [self.bridge.uiManager addUIBlock:^(__unused RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
+//            id view = viewRegistry[reactTag];
+//            RCTAMap *mapView = (RCTAMap *)view;
+//            
+//            for(NSString *key in annotations){
+//                NSDictionary *data = [annotations objectForKey:key];
+//                MAPointAnnotation *pointAnnotation = [[MAPointAnnotation alloc] init];
+//                pointAnnotation.coordinate = CLLocationCoordinate2DMake([[data objectForKey:@"latitude"] floatValue], [[data objectForKey:@"longitude"] floatValue]);
+//                pointAnnotation.title = [data objectForKey:@"title"];
+//                pointAnnotation.subtitle = [data objectForKey:@"subtitle"];
+//                
+//                [mapView addAnnotation:pointAnnotation];
+//            }
+//        }];
+//    });
+//}
 
 @end
