@@ -486,3 +486,13 @@ options.centerMarker        | string | Yes      |           | 设置中心点自
 [1]: http://lbs.amap.com/api/
 [2]: http://cyqresig.github.io/img/react-native-smart-amap-preview-ios-v1.0.0.gif
 [3]: http://blog.csdn.net/jackymvc/article/details/50222503
+
+---
+
+更多：
+
+1. 这是一份自用的代码。
+2. 部分代码暂时没有更好的解决方案，为了功能只好暂时这样写。
+	1. `./android/src/main/java/com/reactnativecomponent/amap/RCTAMapModule.java`中为了访问主项目的图片资源定义了一个map，需要手动维护资源ID。每当向主项目Android原生项目中添加图片资源，需要手动检查一下这里的资源ID。
+
+	
