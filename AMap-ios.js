@@ -82,10 +82,6 @@ export default class AMap extends Component {
     addAnnotation(annotation) {
         AMapManager.addAnnotation(findNodeHandle(this), annotation);
     }
-
-    // addAnnotations(annotations) {
-    //     AMapManager.addAnnotations(findNodeHandle(this), annotations);
-    // }
 }
 
 const NativeAMap = Platform.OS == 'ios' ? requireNativeComponent('RCTAMap', AMap) : View

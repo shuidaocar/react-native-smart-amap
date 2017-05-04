@@ -11,6 +11,8 @@
 #import <AMapFoundationKit/AMapFoundationKit.h>
 #import <AMapSearchKit/AMapSearchKit.h>
 
+static NSMutableDictionary *annotationsDic;
+
 @interface RCTAMapManager ()<MAMapViewDelegate, AMapSearchDelegate>
 
 @property (nonatomic, strong) AMapSearchAPI *search;
@@ -30,6 +32,7 @@ RCT_EXPORT_MODULE(RCTAMap)
     
     self.search = [[AMapSearchAPI alloc] init];
     self.search.delegate = self;
+    annotationsDic = [[NSMutableDictionary alloc] init];
     
     return mapView;
 }
@@ -415,16 +418,31 @@ RCT_EXPORT_METHOD(searchPoiByCenterCoordinate:(NSDictionary *)params)
         static NSString *pointReuseIndetifier = @"pointReuseIndetifier";
         
         MAPinAnnotationView *annotationView = (MAPinAnnotationView *)[mapView dequeueReusableAnnotationViewWithIdentifier:pointReuseIndetifier];
+        NSString *pinIcon = nil;
         if (annotationView == nil)
         {
             annotationView = [[MAPinAnnotationView alloc] initWithAnnotation:annotation reuseIdentifier:pointReuseIndetifier];
         }
         
+        for(NSString *key in annotationsDic){
+            NSDictionary *annotationInfo = [annotationsDic objectForKey:key];
+            MAPointAnnotation *pointAnnotation = [annotationInfo objectForKey:@"annotation"];
+            if (annotation == pointAnnotation) {
+                NSDictionary *annotationConf = [annotationInfo objectForKey:@"annotationConf"];
+                pinIcon = [annotationConf objectForKey:@"icon"];
+                break;
+            }
+        }
+
         annotationView.canShowCallout   = YES;
         annotationView.animatesDrop     = NO;
         annotationView.draggable        = NO;
+        if (pinIcon) {
+            annotationView.image            = [UIImage imageNamed:pinIcon];
+        } else {
+            annotationView.pinColor         = MAPinAnnotationColorPurple;
+        }
         //annotationView.image            = [UIImage imageNamed:mapView.centerMarker];
-        annotationView.pinColor         = MAPinAnnotationColorPurple;
         
         return annotationView;
     }
@@ -655,40 +673,27 @@ RCT_EXPORT_METHOD(searchPoiByCenterCoordinate:(NSDictionary *)params)
                                                  body:result];
 }
 
-//绘制点标记
-RCT_EXPORT_METHOD(addAnnotation:(nonnull NSNumber *)reactTag annotation:(nonnull NSDictionary*)annotation){
+//绘制地点标记
+RCT_EXPORT_METHOD(addAnnotation:(nonnull NSNumber *)reactTag annotation:(nonnull NSDictionary*)annotationConf){
     dispatch_async(self.bridge.uiManager.methodQueue,^{
         [self.bridge.uiManager addUIBlock:^(__unused RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
             id view = viewRegistry[reactTag];
             RCTAMap *mapView = (RCTAMap *)view;
             
             MAPointAnnotation *pointAnnotation = [[MAPointAnnotation alloc] init];
-            pointAnnotation.coordinate = CLLocationCoordinate2DMake([[annotation objectForKey:@"latitude"] floatValue], [[annotation objectForKey:@"longitude"] floatValue]);
-            pointAnnotation.title = [annotation objectForKey:@"title"];
-            pointAnnotation.subtitle = [annotation objectForKey:@"subtitle"];
+            pointAnnotation.coordinate = CLLocationCoordinate2DMake([[annotationConf objectForKey:@"latitude"] floatValue], [[annotationConf objectForKey:@"longitude"] floatValue]);
+            pointAnnotation.title = [annotationConf objectForKey:@"title"];
+            pointAnnotation.subtitle = [annotationConf objectForKey:@"subtitle"];
             
+            //保存地点标记列表中
+            NSString *key = [annotationConf objectForKey:@"key"];
+            NSDictionary *annotationInfo = [NSDictionary dictionaryWithObjects:[NSArray arrayWithObjects:annotationConf, pointAnnotation, nil] forKeys:[NSArray arrayWithObjects:@"annotationConf", @"annotation", nil]];
+            [annotationsDic setObject:annotationInfo forKey:key];
+            
+            //添加到地图中
             [mapView addAnnotation:pointAnnotation];
         }];
     });
 }
-
-//RCT_EXPORT_METHOD(addAnnotations:(nonnull NSNumber *)reactTag annotations:(nonnull NSDictionary *)annotations){
-//    dispatch_async(self.bridge.uiManager.methodQueue,^{
-//        [self.bridge.uiManager addUIBlock:^(__unused RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
-//            id view = viewRegistry[reactTag];
-//            RCTAMap *mapView = (RCTAMap *)view;
-//            
-//            for(NSString *key in annotations){
-//                NSDictionary *data = [annotations objectForKey:key];
-//                MAPointAnnotation *pointAnnotation = [[MAPointAnnotation alloc] init];
-//                pointAnnotation.coordinate = CLLocationCoordinate2DMake([[data objectForKey:@"latitude"] floatValue], [[data objectForKey:@"longitude"] floatValue]);
-//                pointAnnotation.title = [data objectForKey:@"title"];
-//                pointAnnotation.subtitle = [data objectForKey:@"subtitle"];
-//                
-//                [mapView addAnnotation:pointAnnotation];
-//            }
-//        }];
-//    });
-//}
 
 @end
