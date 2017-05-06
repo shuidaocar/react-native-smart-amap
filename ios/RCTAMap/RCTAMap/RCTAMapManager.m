@@ -11,6 +11,8 @@
 #import <AMapFoundationKit/AMapFoundationKit.h>
 #import <AMapSearchKit/AMapSearchKit.h>
 
+static NSMutableDictionary *annotationsDic;
+
 @interface RCTAMapManager ()<MAMapViewDelegate, AMapSearchDelegate>
 
 @property (nonatomic, strong) AMapSearchAPI *search;
@@ -30,6 +32,7 @@ RCT_EXPORT_MODULE(RCTAMap)
     
     self.search = [[AMapSearchAPI alloc] init];
     self.search.delegate = self;
+    annotationsDic = [[NSMutableDictionary alloc] init];
     
     return mapView;
 }
@@ -91,29 +94,30 @@ RCT_CUSTOM_VIEW_PROPERTY(options, NSDictionary, RCTAMap) {
         [view setCenterCoordinate:CLLocationCoordinate2DMake(latitude, longitude) animated:YES];
         //    [view setZoomLevel:15 animated:true];
         
-        if(!view.hasUserLocationPointAnnotaiton) {
-//            NSLog(@"draw userLocation annoation...");
-            
-            view.hasUserLocationPointAnnotaiton = YES;
-            MAPointAnnotation *pointAnnotaiton = [[MAPointAnnotation alloc] init];
-            [pointAnnotaiton setCoordinate:view.centerCoordinate];
-            pointAnnotaiton.lockedToScreen = YES;
-            CGPoint screenPoint = [view convertCoordinate:view.centerCoordinate toPointToView:view];
-            
-            if([keys containsObject:@"centerMarker"]) {
-                view.centerMarker = [options objectForKey:@"centerMarker"];
-                
-                UIImage *image = [UIImage imageNamed:view.centerMarker];
-                
-                //NSLog(@"screenPoint.x = %f, screenPoint.y = %f", screenPoint.x, screenPoint.y);
-                
-                pointAnnotaiton.lockedScreenPoint = CGPointMake(screenPoint.x, screenPoint.y - image.size.height / 2);
-                
-                //screenPoint.x = 183.129769, screenPoint.y = 126.198228
-                
-                [view addAnnotation:pointAnnotaiton];
-            }
-        }
+        view.hasUserLocationPointAnnotaiton = YES;
+//        if(!view.hasUserLocationPointAnnotaiton) {
+//            //NSLog(@"draw userLocation annoation...");
+//
+//            view.hasUserLocationPointAnnotaiton = YES;
+//            MAPointAnnotation *pointAnnotaiton = [[MAPointAnnotation alloc] init];
+//            [pointAnnotaiton setCoordinate:view.centerCoordinate];
+//            pointAnnotaiton.lockedToScreen = YES;
+//            CGPoint screenPoint = [view convertCoordinate:view.centerCoordinate toPointToView:view];
+//            
+//            if([keys containsObject:@"centerMarker"]) {
+//                view.centerMarker = [options objectForKey:@"centerMarker"];
+//            
+//                UIImage *image = [UIImage imageNamed:view.centerMarker];
+//                
+//                //NSLog(@"screenPoint.x = %f, screenPoint.y = %f", screenPoint.x, screenPoint.y);
+//                
+//                pointAnnotaiton.lockedScreenPoint = CGPointMake(screenPoint.x, screenPoint.y - image.size.height / 2);
+//                
+//                //screenPoint.x = 183.129769, screenPoint.y = 126.198228
+//                
+//                [view addAnnotation:pointAnnotaiton];
+//            }
+//        }
     }
 }
 
@@ -414,15 +418,31 @@ RCT_EXPORT_METHOD(searchPoiByCenterCoordinate:(NSDictionary *)params)
         static NSString *pointReuseIndetifier = @"pointReuseIndetifier";
         
         MAPinAnnotationView *annotationView = (MAPinAnnotationView *)[mapView dequeueReusableAnnotationViewWithIdentifier:pointReuseIndetifier];
+        NSString *pinIcon = nil;
         if (annotationView == nil)
         {
             annotationView = [[MAPinAnnotationView alloc] initWithAnnotation:annotation reuseIdentifier:pointReuseIndetifier];
         }
         
-        annotationView.canShowCallout   = NO;
+        for(NSString *key in annotationsDic){
+            NSDictionary *annotationInfo = [annotationsDic objectForKey:key];
+            MAPointAnnotation *pointAnnotation = [annotationInfo objectForKey:@"annotation"];
+            if (annotation == pointAnnotation) {
+                NSDictionary *annotationConf = [annotationInfo objectForKey:@"annotationConf"];
+                pinIcon = [annotationConf objectForKey:@"icon"];
+                break;
+            }
+        }
+
+        annotationView.canShowCallout   = YES;
         annotationView.animatesDrop     = NO;
         annotationView.draggable        = NO;
-        annotationView.image            = [UIImage imageNamed:mapView.centerMarker];
+        if (pinIcon) {
+            annotationView.image            = [UIImage imageNamed:pinIcon];
+        } else {
+            annotationView.pinColor         = MAPinAnnotationColorPurple;
+        }
+        //annotationView.image            = [UIImage imageNamed:mapView.centerMarker];
         
         return annotationView;
     }
@@ -653,5 +673,27 @@ RCT_EXPORT_METHOD(searchPoiByCenterCoordinate:(NSDictionary *)params)
                                                  body:result];
 }
 
+//绘制地点标记
+RCT_EXPORT_METHOD(addAnnotation:(nonnull NSNumber *)reactTag annotation:(nonnull NSDictionary*)annotationConf){
+    dispatch_async(self.bridge.uiManager.methodQueue,^{
+        [self.bridge.uiManager addUIBlock:^(__unused RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
+            id view = viewRegistry[reactTag];
+            RCTAMap *mapView = (RCTAMap *)view;
+            
+            MAPointAnnotation *pointAnnotation = [[MAPointAnnotation alloc] init];
+            pointAnnotation.coordinate = CLLocationCoordinate2DMake([[annotationConf objectForKey:@"latitude"] floatValue], [[annotationConf objectForKey:@"longitude"] floatValue]);
+            pointAnnotation.title = [annotationConf objectForKey:@"title"];
+            pointAnnotation.subtitle = [annotationConf objectForKey:@"subtitle"];
+            
+            //保存地点标记列表中
+            NSString *key = [annotationConf objectForKey:@"key"];
+            NSDictionary *annotationInfo = [NSDictionary dictionaryWithObjects:[NSArray arrayWithObjects:annotationConf, pointAnnotation, nil] forKeys:[NSArray arrayWithObjects:@"annotationConf", @"annotation", nil]];
+            [annotationsDic setObject:annotationInfo forKey:key];
+            
+            //添加到地图中
+            [mapView addAnnotation:pointAnnotation];
+        }];
+    });
+}
 
 @end

@@ -413,6 +413,9 @@ public class RCTAMapView extends FrameLayout implements LocationSource, AMapLoca
         mLocMarker = AMAP.addMarker(options);
     }
 
+    public void addMarkerWithOption(MarkerOptions options) {
+        AMAP.addMarker(options);
+    }
 
     @Override
     public void activate(OnLocationChangedListener listener) {
