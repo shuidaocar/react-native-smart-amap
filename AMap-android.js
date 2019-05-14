@@ -5,10 +5,8 @@
  * Copyright (c) 2016 react-native-component <moonsunfall@aliyun.com>
  */
 
-import React, {
-    PropTypes,
-    Component,
-} from 'react'
+import PropTypes from 'prop-types';
+import React, { Component } from 'react';
 import {
     View,
     requireNativeComponent,
