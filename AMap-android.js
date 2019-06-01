@@ -70,6 +70,10 @@ export default class AMap extends Component {
         //console.log(findNodeHandle)
         AMapManager.setCenterCoordinate(findNodeHandle(this), coordinate)
     }
+
+    addAnnotation(annotation) {
+        AMapManager.addMarker(findNodeHandle(this), annotation);
+    }
 }
 
 const NativeAMap = Platform.OS == 'ios' ? View : requireNativeComponent('RCTAMapView', AMap)
