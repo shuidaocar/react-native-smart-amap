@@ -1,7 +1,6 @@
 apply plugin: 'com.android.library'
 
 android {
-    implementationSdkVersion 23
     buildToolsVersion "23.0.3"
 
     defaultConfig {
