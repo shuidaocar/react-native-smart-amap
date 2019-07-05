@@ -217,7 +217,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				FRAMEWORK_SEARCH_PATHS = "$(SRCROOT)/../../../ios/Frameworks";
+				FRAMEWORK_SEARCH_PATHS = "$(SRCROOT)/../../../../ios";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_PREFIX_HEADER = "";
@@ -244,10 +244,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				FRAMEWORK_SEARCH_PATHS = (
-					"$(SRCROOT)/../../../../ios/Pods/AMapFoundation",
-					"$(SRCROOT)/../../../../ios/Pods/AMapSearch",
-					"$(SRCROOT)/../../../../ios/Pods/AMap3DMap",
-					"$(SRCROOT)/../../../ios/Frameworks",
+					"$(SRCROOT)/../../../../ios",
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
@@ -264,11 +261,8 @@
 		9F12EBD11DD30C6600029EAF /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(SRCROOT)/../../../../ios/Pods/AMapFoundation",
-					"$(SRCROOT)/../../../../ios/Pods/AMapSearch",
-					"$(SRCROOT)/../../../../ios/Pods/AMap3DMap",
-					"$(SRCROOT)/../../../ios/Frameworks",
+				FRAMEWORK_SEARCH_PATHS = (				
+					"$(SRCROOT)/../../../../ios",
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
