@@ -10,3 +10,7 @@ npm-debug.log
 /android/build
 /ios/**/*xcuserdata*
 /ios/**/*xcshareddata*
+
+android/app/.project
+android/app/.classpath
+android/app/.settings
